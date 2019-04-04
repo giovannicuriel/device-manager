@@ -8,6 +8,10 @@ from .utils import HTTPRequestError
 from .conf import CONFIG
 from .DatabaseHandler import db
 
+import json
+from DeviceManager.Logger import Log
+LOGGER = Log().color_log()
+
 class DeviceOverride(db.Model):
     __tablename__ = 'overrides'
 
@@ -190,3 +194,24 @@ def receive_set(target, value, old_value, initiator):
     if old_value == 'psk' and value != 'psk':
         for key in target.pre_shared_keys:
             db.session.delete(key)
+
+@event.listens_for(DeviceAttr, 'load')
+def transform_get(target, context):
+    if target.type == "static":
+        # Checking for JSON compatible types
+        if target.value_type == "number":
+            target.static_value = int(target.static_value)
+        elif target.value_type == "string":
+            # static_value is already a string
+            pass
+        elif target.value_type == "boolean":
+            target.static_value = bool(target.static_value)
+        elif target.value_type == "array" or target.value_type == "object":
+            target.static_value = json.loads(target.static_value)
+        elif target.value_type == "null":
+            target.static_value = None
+        # A few extras
+        elif target.value_type == "float":
+            target.static_value = float(target.static_value)
+        elif target.value_type == "integer":
+            target.static_value = int(target.static_value)
