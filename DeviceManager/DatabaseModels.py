@@ -204,7 +204,7 @@ def transform_get(target, context):
         elif target.value_type == "string":
             # static_value is already a string
             pass
-        elif target.value_type == "boolean":
+        elif (target.value_type == "boolean") or (target.value_type == "bool"):
             target.static_value = bool(target.static_value)
         elif target.value_type == "array" or target.value_type == "object":
             target.static_value = json.loads(target.static_value)
